@@ -1,0 +1,127 @@
+#include "AudioTrack.h"
+#include <iostream>
+#include <cstring>
+#include <random>
+
+AudioTrack::AudioTrack(const std::string& title, const std::vector<std::string>& artists, 
+                      int duration, int bpm, size_t waveform_samples)
+    : title(title), artists(artists), duration_seconds(duration), bpm(bpm), 
+      waveform_data(nullptr), waveform_size(waveform_samples) {
+
+    // Allocate memory for waveform analysis
+    waveform_data = new double[waveform_size];
+
+    // Generate some dummy waveform data for testing
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<double> dis(-1.0, 1.0);
+
+    for (size_t i = 0; i < waveform_size; ++i) {
+        waveform_data[i] = dis(gen);
+    }
+    #ifdef DEBUG
+    std::cout << "AudioTrack created: " << title << " by " << std::endl;
+    for (const auto& artist : artists) {
+        std::cout << artist << " ";
+    }
+    std::cout << std::endl;
+    #endif
+}
+
+// ========== TODO: STUDENTS IMPLEMENT RULE OF 5 ==========
+
+AudioTrack::~AudioTrack() {
+    // TODO: Implement the destructor
+    #ifdef DEBUG
+    std::cout << "AudioTrack destructor called for: " << title << std::endl;
+    #endif
+    // Your code here...
+    if(waveform_data)
+        delete[] waveform_data; //deleting the allocated array
+}
+
+//COPY-CONSTRUCTOR: copying the primitive fields
+AudioTrack::AudioTrack(const AudioTrack& other): title(other.title), artists(other.artists), duration_seconds(other.duration_seconds),
+bpm(other.bpm), waveform_data(other.waveform_data),waveform_size(other.waveform_size)
+{
+    // TODO: Implement the copy constructor
+    #ifdef DEBUG
+    std::cout << "AudioTrack copy constructor called for: " << other.title << std::endl;
+    #endif
+    // Your code here...
+    //creating a deep copy of the other waveform_data
+    waveform_data = new double[waveform_size];
+    for(size_t i=0;i<waveform_size;i++){
+        waveform_data[i]=other.waveform_data[i];
+    }
+}
+
+AudioTrack& AudioTrack::operator=(const AudioTrack& other){
+    #ifdef DEBUG
+    std::cout << "AudioTrack copy assignment called for: " << other.title << std::endl;
+    #endif
+    // Your code here...
+    if(this != &other){ //checking that we don't do a A=A:
+        //COPY-ASSIGNMENT-OPERATOR
+        if(waveform_data){
+            delete[] waveform_data; //deleting our waveform_data
+        }
+        //copying the primitive fields
+        title = other.title;
+        artists = other.artists;
+        duration_seconds = other.duration_seconds;
+        bpm = other.bpm;
+        waveform_size = other.waveform_size;
+        //creating a deep copy of the other waveform_data
+        waveform_data = new double[waveform_size];
+        for(size_t i=0;i<waveform_size;i++){
+            waveform_data[i]=other.waveform_data[i];
+        }
+    }
+    return *this;
+}
+
+// MOVE-CONSTRUCTOR: copying the primitive fields
+AudioTrack::AudioTrack(AudioTrack&& other) noexcept: title(other.title), artists(other.artists), duration_seconds(other.duration_seconds),
+bpm(other.bpm), waveform_data(other.waveform_data),waveform_size(other.waveform_size) {
+    // TODO: Implement the move constructor
+    #ifdef DEBUG
+    std::cout << "AudioTrack move constructor called for: " << other.title << std::endl;
+    #endif
+    // Your code here...
+    //nullifying the other waveform_data so it won't be deleted at the closure of the Activation Frame
+    other.waveform_data = nullptr;
+    other.waveform_size = 0;
+}
+
+AudioTrack& AudioTrack::operator=(AudioTrack&& other) noexcept {
+    // TODO: Implement the move assignment operator
+
+    #ifdef DEBUG
+    std::cout << "AudioTrack move assignment called for: " << other.title << std::endl;
+    #endif
+    // Your code here...
+    if(this != &other){ //checking that we don't do a A=A:
+        //MOVE-ASSIGNMENT-OPERATOR
+        if(waveform_data){
+            delete waveform_data; //deleting our waveform_data
+        }
+        //copying the primitive fields
+        title = other.title;
+        artists = other.artists;
+        duration_seconds = other.duration_seconds;
+        bpm = other.bpm;
+        waveform_size = other.waveform_size;
+        waveform_data=other.waveform_data; //sharing a pointer to the other waveform_data
+        //nullifying the other waveform_data so it won't be deleted at the closure of the Activation Frame
+        other.waveform_data = nullptr;
+        other.waveform_size = 0;
+    }
+    return *this;
+}
+
+void AudioTrack::get_waveform_copy(double* buffer, size_t buffer_size) const {
+    if (buffer && waveform_data && buffer_size <= waveform_size) {
+        std::memcpy(buffer, waveform_data, buffer_size * sizeof(double));
+    }
+}
